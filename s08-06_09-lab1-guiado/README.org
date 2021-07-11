@@ -1,0 +1,273 @@
+#+PROPERTY: HEADER-ARGS:SQL+ :engine postgres
+#+PROPERTY: HEADER-ARGS:SQL+ :dbuser postgres
+#+PROPERTY: HEADER-ARGS:SQL+ :database sem8
+#+PROPERTY: HEADER-ARGS:SQL+ :results table
+#+PROPERTY: HEADER-ARGS:PYTHON+ :session *Python*
+
+* Configuración inicial
+
+Crear una base de datos. Yo utilicé el nombre =sem8=.
+
+** GNU Emacs y Org Mode
+
+Aquellos que quieran experimentar con Org Mode necesitarían ejecutar el siguiente comando
+
+#+begin_src elisp
+(setq python-shell-virtualenv-root
+      (concat (symbol-value 'default-directory) "venv/"))
+#+end_src
+
+* Instrucciones iniciales
+
+** 3
+
+#+begin_src python
+import psycopg2
+
+conn = psycopg2.connect(dbname = 'sem8',
+                        user = 'postgres');
+
+cur = conn.cursor()
+
+cur.execute('select * from clientes;')
+
+for row in cur.fetchall():
+    print(row[0], row[1], row[2])
+    
+cur.close()
+conn.close()
+#+end_src
+
+#+RESULTS:
+#+begin_example
+1 1890786576 SUPERMERCADO ESTRELLA         
+2 1298765477 EL ROSADO                     
+3 1009876567 DISTRIBUIDORA PRENSA          
+4 1876090006 SU TIENDA                     
+5 1893456776 SUPERMERCADO DORADO           
+6 1678999891 MI COMISARIATO                
+7 1244567888 SUPERMERCADO DESCUENTO        
+8 1456799022 EL DESCUENTO                  
+9 1845677777 DE LUISE                      
+10 183445667  YARBANTRELLA                  
+1001 1044182707 Teofilo Chambilla
+#+end_example
+
+** 4
+
+*** Procedimiento =get_cliente_by_ruc=
+
+El siguiente procedimiento retorna las fechas de todas las ordenes de quien se sabe el número de RUC.
+
+#+HEADER: :results none
+#+HEADER: :tangle get_cliente_by_ruc.sql
+#+BEGIN_SRC sql
+CREATE OR REPLACE FUNCTION get_cliente_by_ruc(p_ruc varchar)
+  RETURNS TABLE(clienteid INTEGER, fechaorden DATE) AS
+$$
+  BEGIN
+    RETURN QUERY
+      SELECT O.clienteid, O.fechaorden
+      FROM clientes C, ordenes O
+      WHERE C.clienteid = O.clienteid AND C.cedula_ruc = p_ruc;
+  END;
+$$ LANGUAGE plpgsql;
+#+END_SRC
+
+#+begin_src sql
+SELECT get_cliente_by_ruc('1890786576');
+#+end_src
+
+#+RESULTS:
+#+begin_example
+get_cliente_by_ruc
+#+end_example
+
+*** Procedimiento =sp_cliente_ins=
+:PROPERTIES:
+:ID: c087f7e5-1d0b-4a2a-8ebb-d529c44d12c0
+:END:
+
+El siguiente procedimiento permite insertar un nuevo cliente según su ID, RUC, nombre, nombre de contacto y dirección.
+
+#+begin_src sql
+CREATE OR REPLACE FUNCTION sp_cliente_ins(
+  p_id INT,
+  p_ruc VARCHAR,
+  p_nombre VARCHAR,
+  p_contacto VARCHAR,
+  p_direccion VARCHAR
+)
+  RETURNS void AS $$
+  BEGIN
+    INSERT INTO clientes (clienteid, cedula_ruc, nombrecia, nombrecontacto, direccioncli)
+    VALUES (p_id, p_ruc, p_nombre,p_contacto,p_direccion);
+  END;
+$$ LANGUAGE plpgsql;
+#+end_src
+
+Podemos utilizar este procedimiento almacenado como sigue
+
+#+begin_src sql
+SELECT SP_CLIENTE_INS(1001, '1044182707', 'Teofilo Chambilla', 'Teofilo', '');
+#+end_src
+
+Podemos comprobar que realmente ha sido insertado buscando la llave primaria.
+
+#+begin_src sql
+SELECT * FROM clientes WHERE clienteid = 1001;
+#+end_src
+
+#+RESULTS:
+| clienteid | cedula_ruc | nombrecia         | nombrecontacto | direccioncli | fax | email | celular | fijo |
+|-----------+------------+-------------------+----------------+--------------+-----+-------+---------+------|
+|      1001 | 1044182707 | Teofilo Chambilla | Teofilo        |              |     |       |         |      |
+
+*** Código en Python para ejecutar el procedimiento =SP_CLIENTE_INS=
+
+#+begin_src python
+import psycopg2
+
+def get_clientes():
+    conn = None
+    
+    try:
+        # conectarse a la base de datos
+        conn = psycopg2.connect(database = 'sem8',
+                                user = 'postgres')
+        # crear un cursor object para la ejecucion
+        cur = conn.cursor()
+        # llamar al procedimiento almacenado
+        cur.callproc('get_cliente_by_ruc', ('1298765477',))
+        # procesar el result set
+        row = cur.fetchone()
+        
+        while row is not None:
+            print(row)
+            row = cur.fetchone()
+            
+        # cerrar la comunicacion con el servidor de PostgreSQL
+        cur.close()
+        
+    except(Exception, psycopg2.DatabaseError) as error:
+        print(error)
+        
+    finally:
+        if conn is not None:
+            conn.close()
+
+get_clientes()
+#+end_src
+
+#+RESULTS:
+#+begin_example
+(2, datetime.date(2007, 6, 13))
+(2, datetime.date(2007, 6, 17))
+(2, datetime.date(2007, 6, 18))
+#+end_example
+
+* Ejercicio 1
+
+** Procedimiento =SP_CLIENTE_INS=
+
+Este procedimiento fue compartido por el profesor durante la clase y se encuentra definido en [[id:c087f7e5-1d0b-4a2a-8ebb-d529c44d12c0][esta]] sección.
+
+El siguiente procedimiento es una mejora pues acepta realmente todos los atributos que existen en la tabla =clientes=.
+
+#+HEADER: :results silent
+#+BEGIN_SRC sql
+CREATE OR REPLACE FUNCTION SP_CLIENTE_INS (
+  clienteid INT,
+  cedula_ruc CHAR(10),
+  nombrecia CHAR(30),
+  nombrecontacto CHAR(50),
+  direccioncli CHAR(50),
+  fax CHAR(12),
+  email CHAR(50),
+  celular CHAR(12),
+  fijo CHAR(12)
+)
+  RETURNS void AS $$
+  BEGIN
+    INSERT INTO clientes (
+      clienteid,
+      cedula_ruc,
+      nombrecia,
+      nombrecontacto,
+      direccioncli,
+      fax,
+      email,
+      celular,
+      fijo
+    )
+    VALUES (
+      clienteid,
+      cedula_ruc,
+      nombrecia,
+      nombrecontacto,
+      direccioncli,
+      fax,
+      email,
+      celular,
+      fijo
+    );
+  END;
+$$ LANGUAGE plpgsql;
+#+end_src
+
+#+begin_src sql
+SELECT SP_CLIENTE_INS (30001,
+		       '1009876567',
+		       'DISTRIBUIDORA PRENSA',
+		       'PEDRO PINTO',
+		       'EL PINAR',
+		       NULL,
+		       NULL,
+		       NULL,
+		       NULL);
+#+end_src
+
+#+RESULTS:
+|---|
+
+** Procedimiento =SP_CLIENTE_SEL=
+
+#+HEADER: :results none
+#+HEADER: :tangle get_cliente_by_ruc.sql
+#+BEGIN_SRC sql
+CREATE OR REPLACE FUNCTION SP_CLIENTE_SEL(ruc CHAR(10))
+  RETURNS TABLE(
+    CLIENTEID int,
+    CEDULA_RUC char(10),
+    NOMBRECIA char(30),
+    NOMBRECONTACTO char(50),
+    DIRECCIONCLI char(50),
+    FAX char(12),
+    EMAIL char(50),
+    CELULAR char(12),
+    FIJO char(12)) AS
+$$
+  BEGIN
+    RETURN QUERY
+      SELECT *
+      FROM clientes
+      WHERE clientes.cedula_ruc = ruc;
+  END;
+$$ LANGUAGE plpgsql;
+#+END_SRC
+
+#+begin_src sql :results verbatim
+SELECT SP_CLIENTE_SEL('1009876567');
+#+end_src
+
+#+RESULTS:
+#+begin_example
+sp_cliente_sel
+(3,1009876567,"DISTRIBUIDORA PRENSA          ","PEDRO PINTO                                       ","EL PINAR                                          ",,,,)
+(20001,1009876567,"DISTRIBUIDORA PRENSA          ","PEDRO PINTO                                       ","EL PINAR                                          ",,,,)
+(30001,1009876567,"DISTRIBUIDORA PRENSA          ","PEDRO PINTO                                       ","EL PINAR                                          ",,,,)
+#+end_example
+
+** Procedimiento =SP_CLIENTE_UPD=
+** Procedimiento =SP_CLIENTE_DEL=
+

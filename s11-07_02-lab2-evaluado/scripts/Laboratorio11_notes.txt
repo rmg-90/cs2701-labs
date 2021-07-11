@@ -1,0 +1,327 @@
+data: lab11.zip
+
+cd /data/cs2701/lab11/
+unzip lab11.zip
+-- SET CLIENT_ENCODING TO 'utf8'; 
+sudo -u postgres psql
+
+\connect cs2701;
+
+CREATE SCHEMA lab11;
+CREATE SCHEMA lab11i;
+
+ALTER USER cs2701 SET search_path TO lab11,lab11i,"$user",public;
+ALTER USER postgres SET search_path TO lab11,lab11i,"$user",public;
+
+ALTER DEFAULT PRIVILEGES 
+    FOR USER postgres
+    IN SCHEMA lab11
+    GRANT SELECT ON TABLES TO cs2701;
+	
+GRANT USAGE ON SCHEMA lab11 TO cs2701;
+
+
+
+ALTER DEFAULT PRIVILEGES 
+    FOR USER postgres
+    IN SCHEMA lab11i
+    GRANT SELECT ON TABLES TO cs2701;
+	
+GRANT USAGE ON SCHEMA lab11i TO cs2701;
+
+--- if needed
+
+
+GRANT SELECT ON TABLE lab11.actor100 TO cs2701;
+GRANT SELECT ON TABLE lab11.actor1000 TO cs2701;
+GRANT SELECT ON TABLE lab11.actor10000 TO cs2701;
+GRANT SELECT ON TABLE lab11.pelicula100 TO cs2701;
+GRANT SELECT ON TABLE lab11.pelicula1000 TO cs2701;
+GRANT SELECT ON TABLE lab11.pelicula10000 TO cs2701;
+GRANT SELECT ON TABLE lab11.personaje100 TO cs2701;
+GRANT SELECT ON TABLE lab11.personaje1000 TO cs2701;
+GRANT SELECT ON TABLE lab11.personaje10000 TO cs2701;
+
+
+
+--- 10000 not indexed
+
+CREATE TABLE lab11.actor10000 (
+    nombre varchar (255) PRIMARY KEY,
+    genero character (1) NOT NULL check (genero in ('F', 'M'))
+);
+
+COPY lab11.actor10000 FROM '/cloudclusters/lab11/10000/actor.tsv' DELIMITER E'\t';
+--en windows COPY lab11.actor10000 FROM 'D:\backup\lab11\10000\actor.tsv' DELIMITER E'\t';
+-- SET UTF8 para tildes y otros
+--SET CLIENT_ENCODING TO 'utf8';  
+
+CREATE TABLE lab11.pelicula10000 (
+    nombre varchar (255),
+	anho smallint,
+    calificacion float,
+	votos int,
+	PRIMARY KEY (nombre, anho)
+);
+
+COPY lab11.pelicula10000 FROM '/cloudclusters/lab11/10000/movie.tsv' DELIMITER E'\t' NULL AS 'null';
+--en windows COPY lab11.pelicula10000 FROM 'D:\backup\lab11\10000\movie.tsv' DELIMITER E'\t' NULL AS 'null';
+
+CREATE TABLE lab11.personaje10000 (
+    a_nombre varchar (255) REFERENCES lab11.actor10000 (nombre),
+    p_nombre varchar (255),
+	p_anho smallint,
+	personaje varchar (255),
+	PRIMARY KEY (a_nombre, p_nombre, p_anho, personaje),
+	FOREIGN KEY (p_nombre, p_anho) REFERENCES lab11.pelicula10000 (nombre, anho)
+);
+
+COPY lab11.personaje10000 FROM '/cloudclusters/lab11/10000/role.tsv' DELIMITER E'\t';
+--en windows COPY lab11.personaje10000 FROM 'D:\backup\lab11\10000\role.tsv' DELIMITER E'\t';
+
+--- 1000 not indexed
+
+CREATE TABLE lab11.actor1000 (
+    nombre varchar (255) PRIMARY KEY,
+    genero character (1) NOT NULL check (genero in ('F', 'M'))
+);
+
+COPY lab11.actor1000 FROM '/cloudclusters/lab11/1000/actor.tsv' DELIMITER E'\t';
+--en windows COPY lab11.actor1000 FROM 'D:\backup\lab11\1000\actor.tsv' DELIMITER E'\t';
+
+CREATE TABLE lab11.pelicula1000 (
+    nombre varchar (255),
+	anho smallint,
+    calificacion float,
+	votos int,
+	PRIMARY KEY (nombre, anho)
+);
+
+COPY lab11.pelicula1000 FROM '/cloudclusters/lab11/1000/movie.tsv' DELIMITER E'\t' NULL AS 'null';
+--en windows COPY lab11.pelicula1000 FROM 'D:\backup\lab11\1000\movie.tsv' DELIMITER E'\t' NULL AS 'null';
+CREATE TABLE lab11.personaje1000 (
+    a_nombre varchar (255) REFERENCES lab11.actor1000 (nombre),
+    p_nombre varchar (255),
+	p_anho smallint,
+	personaje varchar (255),
+	PRIMARY KEY (a_nombre, p_nombre, p_anho, personaje),
+	FOREIGN KEY (p_nombre, p_anho) REFERENCES lab11.pelicula1000 (nombre, anho)
+);
+
+COPY lab11.personaje1000 FROM '/cloudclusters/lab11/1000/role.tsv' DELIMITER E'\t';
+--en windows COPY lab11.personaje1000 FROM 'D:\backup\lab11\1000\role.tsv' DELIMITER E'\t';
+--- 100 not indexed
+
+CREATE TABLE lab11.actor100 (
+    nombre varchar (255) PRIMARY KEY,
+    genero character (1) NOT NULL check (genero in ('F', 'M'))
+);
+
+COPY lab11.actor100 FROM '/cloudclusters/lab11/100/actor.tsv' DELIMITER E'\t';
+--en windows COPY lab11.actor100 FROM 'D:\backup\lab11\100\actor.tsv' DELIMITER E'\t';
+
+CREATE TABLE lab11.pelicula100 (
+    nombre varchar (255),
+	anho smallint,
+    calificacion float,
+	votos int,
+	PRIMARY KEY (nombre, anho)
+);
+
+COPY lab11.pelicula100 FROM '/cloudclusters/lab11/100/movie.tsv' DELIMITER E'\t' NULL AS 'null';
+--en windows COPY lab11.pelicula100 FROM 'D:\backup\lab11\100\movie.tsv' DELIMITER E'\t' NULL AS 'null';
+
+CREATE TABLE lab11.personaje100 (
+    a_nombre varchar (255) REFERENCES lab11.actor100 (nombre),
+    p_nombre varchar (255),
+	p_anho smallint,
+	personaje varchar (255),
+	PRIMARY KEY (a_nombre, p_nombre, p_anho, personaje),
+	FOREIGN KEY (p_nombre, p_anho) REFERENCES lab11.pelicula100 (nombre, anho)
+);
+
+COPY lab11.personaje100 FROM '/cloudclusters/lab11/100/role.tsv' DELIMITER E'\t';
+--en windows COPY lab11.personaje100 FROM 'D:\backup\lab11\100\role.tsv' DELIMITER E'\t';
+
+
+
+--- 10000 indexed
+
+CREATE TABLE lab11i.actor10000 (
+    nombre varchar (255) PRIMARY KEY,
+    genero character (1) NOT NULL check (genero in ('F', 'M'))
+);
+
+COPY lab11i.actor10000 FROM '/cloudclusters/lab11/10000/actor.tsv' DELIMITER E'\t';
+--en windows COPY lab11i.actor10000 FROM 'D:\backup\lab11\10000\actor.tsv' DELIMITER E'\t';
+
+CREATE TABLE lab11i.pelicula10000 (
+    nombre varchar (255),
+	anho smallint,
+    calificacion float,
+	votos int,
+	PRIMARY KEY (nombre, anho)
+);
+
+COPY lab11i.pelicula10000 FROM '/cloudclusters/lab11/10000/movie.tsv' DELIMITER E'\t' NULL AS 'null';
+--en windows COPY lab11i.pelicula10000 FROM 'D:\backup\lab11\10000\movie.tsv' DELIMITER E'\t' NULL AS 'null';
+CREATE TABLE lab11i.personaje10000 (
+    a_nombre varchar (255) REFERENCES lab11i.actor10000 (nombre),
+    p_nombre varchar (255),
+	p_anho smallint,
+	personaje varchar (255),
+	PRIMARY KEY (a_nombre, p_nombre, p_anho, personaje),
+	FOREIGN KEY (p_nombre, p_anho) REFERENCES lab11i.pelicula10000 (nombre, anho)
+);
+
+COPY lab11i.personaje10000 FROM '/cloudclusters/lab11/10000/role.tsv' DELIMITER E'\t';
+--en windows COPY lab11i.personaje10000 FROM 'D:\backup\lab11\10000\role.tsv' DELIMITER E'\t';
+
+--- 1000 indexed
+
+CREATE TABLE lab11i.actor1000 (
+    nombre varchar (255) PRIMARY KEY,
+    genero character (1) NOT NULL check (genero in ('F', 'M'))
+);
+
+COPY lab11i.actor1000 FROM '/cloudclusters/lab11/1000/actor.tsv' DELIMITER E'\t';
+--en windows COPY lab11i.actor1000 FROM 'D:\backup\lab11\1000\actor.tsv' DELIMITER E'\t';
+
+CREATE TABLE lab11i.pelicula1000 (
+    nombre varchar (255),
+	anho smallint,
+    calificacion float,
+	votos int,
+	PRIMARY KEY (nombre, anho)
+);
+
+COPY lab11i.pelicula1000 FROM '/cloudclusters/lab11/1000/movie.tsv' DELIMITER E'\t' NULL AS 'null';
+--en windows COPY lab11i.pelicula1000 FROM 'D:\backup\lab11\1000\movie.tsv' DELIMITER E'\t' NULL AS 'null';
+
+CREATE TABLE lab11i.personaje1000 (
+    a_nombre varchar (255) REFERENCES lab11i.actor1000 (nombre),
+    p_nombre varchar (255),
+	p_anho smallint,
+	personaje varchar (255),
+	PRIMARY KEY (a_nombre, p_nombre, p_anho, personaje),
+	FOREIGN KEY (p_nombre, p_anho) REFERENCES lab11i.pelicula1000 (nombre, anho)
+);
+
+COPY lab11i.personaje1000 FROM '/cloudclusters/lab11/1000/role.tsv' DELIMITER E'\t';
+--en windows COPY lab11i.personaje1000 FROM 'D:\backup\lab11\1000\role.tsv' DELIMITER E'\t';
+
+
+--- 100 indexed
+
+CREATE TABLE lab11i.actor100 (
+    nombre varchar (255) PRIMARY KEY,
+    genero character (1) NOT NULL check (genero in ('F', 'M'))
+);
+
+COPY lab11i.actor100 FROM '/cloudclusters/lab11/100/actor.tsv' DELIMITER E'\t';
+--en windows COPY lab11i.actor100 FROM 'D:\backup\lab11\100\actor.tsv' DELIMITER E'\t';
+
+CREATE TABLE lab11i.pelicula100 (
+    nombre varchar (255),
+	anho smallint,
+    calificacion float,
+	votos int,
+	PRIMARY KEY (nombre, anho)
+);
+
+COPY lab11i.pelicula100 FROM '/cloudclusters/lab11/100/movie.tsv' DELIMITER E'\t' NULL AS 'null';
+--en windows COPY lab11i.pelicula100 FROM 'D:\backup\lab11\100\movie.tsv' DELIMITER E'\t' NULL AS 'null';
+
+CREATE TABLE lab11i.personaje100 (
+    a_nombre varchar (255) REFERENCES lab11i.actor100 (nombre),
+    p_nombre varchar (255),
+	p_anho smallint,
+	personaje varchar (255),
+	PRIMARY KEY (a_nombre, p_nombre, p_anho, personaje),
+	FOREIGN KEY (p_nombre, p_anho) REFERENCES lab11i.pelicula100 (nombre, anho)
+);
+
+COPY lab11i.personaje100 FROM '/cloudclusters/lab11/100/role.tsv' DELIMITER E'\t';
+--en windows COPY lab11i.personaje100 FROM 'D:\backup\lab11\100\role.tsv' DELIMITER E'\t';
+
+
+SELECT COUNT(*) FROM lab11.actor100; -- 856421
+SELECT COUNT(*) FROM lab11.pelicula100; -- 72696
+SELECT COUNT(*) FROM lab11.personaje100; -- 2170526
+SELECT COUNT(*) FROM lab11.actor1000; -- 440234
+SELECT COUNT(*) FROM lab11.pelicula1000; -- 22490
+SELECT COUNT(*) FROM lab11.personaje1000; -- 944964
+SELECT COUNT(*) FROM lab11.actor10000; -- 197219
+SELECT COUNT(*) FROM lab11.pelicula10000; -- 6401
+SELECT COUNT(*) FROM lab11.personaje10000; -- 372367
+
+SELECT COUNT(*) FROM lab11i.actor100; -- 856421
+SELECT COUNT(*) FROM lab11i.pelicula100; -- 72696
+SELECT COUNT(*) FROM lab11i.personaje100; -- 2170526
+SELECT COUNT(*) FROM lab11i.actor1000; -- 440234
+SELECT COUNT(*) FROM lab11i.pelicula1000; -- 22490
+SELECT COUNT(*) FROM lab11i.personaje1000; -- 944964
+SELECT COUNT(*) FROM lab11i.actor10000; -- 197219
+SELECT COUNT(*) FROM lab11i.pelicula10000; -- 6401
+SELECT COUNT(*) FROM lab11i.personaje10000; -- 372367
+
+
+CREATE INDEX actor10000_nombre ON lab11i.actor10000 (nombre);
+CREATE INDEX actor10000_genero ON lab11i.actor10000 (genero);
+CREATE INDEX pelicula10000_nombre ON lab11i.pelicula10000 (nombre);
+CREATE INDEX pelicula10000_calificacion ON lab11i.pelicula10000 (calificacion);
+CREATE INDEX pelicula10000_votos ON lab11i.pelicula10000 (votos);
+CREATE INDEX personaje10000_anombre ON lab11i.personaje10000 (a_nombre);
+CREATE INDEX personaje10000_pnombre ON lab11i.personaje10000 (p_nombre);
+CREATE INDEX personaje10000_panho ON lab11i.personaje10000 (p_anho);
+CREATE INDEX personaje10000_pnombreanho ON lab11i.personaje10000 (p_nombre,p_anho);
+CREATE INDEX actor1000_nombre ON lab11i.actor1000 (nombre);
+CREATE INDEX actor1000_genero ON lab11i.actor1000 (genero);
+CREATE INDEX pelicula1000_nombre ON lab11i.pelicula1000 (nombre);
+CREATE INDEX pelicula1000_calificacion ON lab11i.pelicula1000 (calificacion);
+CREATE INDEX pelicula1000_votos ON lab11i.pelicula1000 (votos);
+CREATE INDEX personaje1000_anombre ON lab11i.personaje1000 (a_nombre);
+CREATE INDEX personaje1000_pnombre ON lab11i.personaje1000 (p_nombre);
+CREATE INDEX personaje1000_panho ON lab11i.personaje1000 (p_anho);
+CREATE INDEX personaje1000_pnombreanho ON lab11i.personaje1000 (p_nombre,p_anho);
+CREATE INDEX actor100_nombre ON lab11i.actor100 (nombre);
+CREATE INDEX actor100_genero ON lab11i.actor100 (genero);
+CREATE INDEX pelicula100_nombre ON lab11i.pelicula100 (nombre);
+CREATE INDEX pelicula100_calificacion ON lab11i.pelicula100 (calificacion);
+CREATE INDEX pelicula100_votos ON lab11i.pelicula100 (votos);
+CREATE INDEX personaje100_anombre ON lab11i.personaje100 (a_nombre);
+CREATE INDEX personaje100_pnombre ON lab11i.personaje100 (p_nombre);
+CREATE INDEX personaje100_panho ON lab11i.personaje100 (p_anho);
+CREATE INDEX personaje100_pnombreanho ON lab11i.personaje100 (p_nombre,p_anho);
+
+-- in case
+DROP INDEX lab11i.actor1000_nombre;
+DROP INDEX lab11i.actor1000_genero;
+DROP INDEX lab11i.pelicula1000_nombre;
+DROP INDEX lab11i.pelicula1000_calificacion;
+DROP INDEX lab11i.pelicula1000_votos;
+DROP INDEX lab11i.personaje1000_anombre;
+DROP INDEX lab11i.personaje1000_pnombre;
+DROP INDEX lab11i.personaje1000_panho;
+DROP INDEX lab11i.personaje1000_pnombreanho;
+
+\d+ lab11i.actor10000
+\d+ lab11i.pelicula10000
+\d+ lab11i.personaje10000
+\d+ lab11i.actor1000
+\d+ lab11i.pelicula1000
+\d+ lab11i.personaje1000
+\d+ lab11i.actor100
+\d+ lab11i.pelicula100
+\d+ lab11i.personaje100
+\d+ lab11.actor10000
+\d+ lab11.pelicula10000
+\d+ lab11.personaje10000
+\d+ lab11.actor1000
+\d+ lab11.pelicula1000
+\d+ lab11.personaje1000
+\d+ lab11.actor100
+\d+ lab11.pelicula100
+\d+ lab11.personaje100
+
+EXPLAIN ANALYSE SELECT * from lab11.personaje100 where p_nombre='Fight Club';

@@ -1,0 +1,23 @@
+#+PROPERTY: HEADER-ARGS:SQL+ :dbengine postgres
+
+* Explicación del problema
+
+=VotosPorCentro= actualiza =SedeProvincial=.
+
+=SedeProvincial= actualiza =SedeDepartamental=.
+
+=SedeDepartamental= actualiza =centrodevotacion
+
+centrodevotacion actualiza candidato
+
+* Resolución de ejercicios
+
+** P1
+
+[[file:./insert-tablas-en-cero.sql]]
+
+** P2
+** P3
+** P4 
+** P5 
+** P6
