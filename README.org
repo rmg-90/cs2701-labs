@@ -1,3 +1,13 @@
+* Introducción
+
+Este repositorio contiene las soluciones del curso Base de Datos I (=CS2701=) enseñado en UTEC en el periodo 2021-1.
+
+* Contribuciones
+
+1. Crea un /fork/ de este repositorio.
+2. Haz tus cambios en el repositorio creado en el paso 1.
+3. Crea un /pull request/
+   
 * Organización de la carpeta
 
 Cada carpeta con profundidad 1 en este repositorio, es obligatorio que tenga los siguientes archivos
