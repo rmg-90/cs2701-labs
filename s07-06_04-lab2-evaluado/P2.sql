@@ -1,5 +1,12 @@
+SET search_path = a2021_1_sec1_lab7_grupo2;
+
+--- (a)
+
+---- Enunciado
+
 -- Elabore un consulta SQL para mostrar el chef que tiene más comidas preparadas (tome como referencia el monto total de comidas pagadas)
-set search_path = a2021_1_sec1_lab7_grupo2;
+
+---- Consulta
 
 SELECT Pr.nombre, Pr.apellido, SUM(Pa.monto_total) AS monto_total
 FROM planilla Pl
@@ -36,34 +43,44 @@ HAVING SUM(Pa.monto_total) = (
     	) AS monto_total_pagado);
 
 
+---- Resultado
+
 /*
+ * $ psql -U postgres -f main.sql -q
+ * 
+ *  nombre  | apellido |    monto_total     
+ * ---------+----------+--------------------
+ *  Enrique | Martinez | 164.10000000000002
+ * (1 row)
+ * 
+ */
 
-$ psql -U postgres -f main.sql -q
+--- (b)
 
- nombre  | apellido |    monto_total     
----------+----------+--------------------
- Enrique | Martinez | 164.10000000000002
-(1 row)
-
-*/
+---- Enunciado
 
 -- Elabore un consulta SQL para mostrar las ventas por mes del 2021
+
+---- Consulta
 
 SELECT DATE_PART('month', fecha_emision) AS mes, SUM(monto_total) AS total_de_mes
 FROM pago
 WHERE DATE_PART('year', fecha_emision) = 2021
 GROUP BY DATE_PART('month', fecha_emision);
 
-/*
-$ psql -U postgres -f main.sql -q
+---- Resultado
 
- mes |    total_de_mes
------+--------------------
-   1 |               71.4
-   2 |               20.7
-   3 |               14.8
-   4 |                 88
-   6 | 154.60000000000002
-   7 |               21.3
-(6 rows)
-*/
+/*
+ * $ psql -U postgres -f main.sql -q
+ * 
+ *  mes |    total_de_mes
+ * -----+--------------------
+ *    1 |               71.4
+ *    2 |               20.7
+ *    3 |               14.8
+ *    4 |                 88
+ *    6 | 154.60000000000002
+ *    7 |               21.3
+ * (6 rows)
+ *
+ */
