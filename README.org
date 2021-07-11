@@ -1,8 +1,13 @@
 * Organización de la carpeta
 
-Cada carpeta con profundidad 1 en este repositorio, debe tener los siguientes archivos.
+Cada carpeta con profundidad 1 en este repositorio, es obligatorio que tenga los siguientes archivos
 
-+ Un archivo =README.org= que contenga la explicación de la solución de cada uno de los ejercicios.
-+ Un archivo =enunciado.pdf= que contenga el enunciado de ese laboratorio.
++ =README.org=: Contiene la explicación de la solución de cada uno de los ejercicios.
++ =enunciado.pdf=: Contiene el enunciado de ese laboratorio.
+
+Opcionalmente, puede tener los siguientes archivos
+
++ =pauta.xxx=: Contiene la solución de los ejercicios brindada por el mismo curso.
+
 
   
